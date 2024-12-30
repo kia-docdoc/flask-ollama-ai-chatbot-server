@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoongi Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #2c2c2c;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #76c7c0;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #chatBox {
+            flex-grow: 1;
+            width: 90%;
+            max-width: 590px;
+            max-height: 70%;
+            margin: 0 auto 10px auto;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding-left: 5px;
+            overflow-y: auto;
+            background-color: #1e1e1e;
+        }
+
+        .user {
+            color: #4ca1af;
+            margin: 5px 0;
+        }
+
+        .ai {
+            color: #a1d76f;
+            margin: 5px 0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 600px;
+            padding: 10px;
+            background-color: #2c2c2c;
+        }
+
+        textarea {
+            width: 80%;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 16px;
+            resize: none;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #76c7c0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #68b3ad;
+            transform: translateY(-2px);
+        }
+
+        .emoji-button {
+            background-color: #76c7c0;
+            color: white;
+            font-family: "Courier New", monospace;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #76c7c0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .emoji-button:hover {
+            background-color: #4c7777;
+            transform: scale(1.1);
+        }
+
+        .emoji-picker {
+			display: none;
+			position: absolute;
+			background-color: #333;
+			border-radius: 12px;
+			padding-left: 0px;
+			padding-right: 25px;
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+			z-index: 9999;
+			text-align: center;
+			grid-template-columns: repeat(6, 1fr);
+			grid-gap: 0px;
+			width: 100%;
+			height: 100%;
+			max-width: 500px;	
+			box-sizing: border-box;
+			top: 60%;  /* Adjust the top position for better visibility */
+			left: 50%;
+			transform: translateX(-50%);
+			max-height: 175px; /* Add a max height to avoid overflow */
+			overflow-y: auto; /* Enable scrolling */
+		}
+
+        .emoji-picker button {
+			background: none;
+			border: none;
+			font-size: 24px;
+			cursor: pointer;
+			transition: transform 0.2s ease;
+			display: block; /* Ensures the buttons don't overflow horizontally */
+			width: 30px; /* Set a fixed width */
+			height: 30px; /* Set a fixed height */
+			margin: 0 auto; /* Centers the emoji buttons */
+		}
+
+        .emoji-picker button:hover {
+            transform: scale(1.3);
+        }
+
+        .emoji-picker.active {
+            display: grid;
+        }
+
+        @media (max-width: 600px) {
+            #chatBox {
+                height: calc(100vh - 730px);
+            }
+
+            textarea {
+                font-size: 14px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .emoji-picker {
+				top: 65%;
+				width: 90%;
+				height: 100%;
+				max-width: none;
+				max-height: 150px; /* Increase max height for smaller screens */
+			}
+        }
+        
+        body {
+            overflow: hidden;
+        }
+		
+		/* Popup Alert Styling */
+        .popup-alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            color: #fff;
+            padding-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .popup-alert h2 {
+            color: #ff4444;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .popup-alert p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .popup-alert button {
+            background-color: #76c7c0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .popup-alert button:hover {
+            background-color: #68b3ad;
+        }
+    </style>
+
+    <script>
+	    // Show the popup alert when the page loads
+        window.onload = function() {
+            setTimeout(showPopup, 1000); // Delay to show popup
+        };
+
+        function showPopup() {
+            const popup = document.getElementById('popupAlert');
+            popup.style.display = 'block';
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popupAlert');
+            popup.style.display = 'none';
+        }
+		
+		async function sendMessage() {
+			const userMessage = document.getElementById('userMessage').value;
+			const chatBox = document.getElementById('chatBox');
+
+			// Append user's message to the chat box
+			chatBox.innerHTML += `<div class="user"><strong>You:</strong> ${userMessage}</div>`;
+			document.getElementById('userMessage').value = ''; // Clear input box
+
+			// Start streaming the AI's response
+			const response = await fetch('/chat', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: new URLSearchParams({ message: userMessage })
+			});
+
+			const reader = response.body.getReader();
+			const decoder = new TextDecoder();
+
+			// Create a container for the AI's response
+			const aiContainer = document.createElement('div');
+			aiContainer.className = 'ai';
+			aiContainer.innerHTML = '<strong>Yoongi:</strong> ';
+			chatBox.appendChild(aiContainer);
+
+			// Read the streamed chunks
+			while (true) {
+				const { value, done } = await reader.read();
+				if (done) break;
+
+				// Decode and format the chunk with multi-line support
+				const decodedText = decoder.decode(value, { stream: true }).replace(/\n/g, '<br>');
+				aiContainer.innerHTML += decodedText;
+				chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
+			}
+		}
+
+		function addEmoji(emoji) {
+			const userMessageInput = document.getElementById('userMessage');
+			userMessageInput.value += emoji;
+			userMessageInput.focus();
+		}
+
+		function toggleEmojiPicker() {
+			const emojiPicker = document.getElementById('emojiPicker');
+			emojiPicker.classList.toggle('active');
+		}
+
+		// Close emoji picker if clicked outside
+		document.addEventListener('click', function(event) {
+			const emojiPicker = document.getElementById('emojiPicker');
+			const emojiButton = document.querySelector('.emoji-button');
+			
+			// Check if the click was outside the emoji picker or emoji button
+			if (!emojiPicker.contains(event.target) && !emojiButton.contains(event.target)) {
+				emojiPicker.classList.remove('active');
+			}
+		});
+
+		document.addEventListener('DOMContentLoaded', () => {
+			const userMessageInput = document.getElementById('userMessage');
+			userMessageInput.addEventListener('keydown', (event) => {
+				if (event.key === 'Enter' && !event.shiftKey) {
+					event.preventDefault(); // Prevent new line
+					sendMessage();
+				}
+			});
+		});
+		</script>
+</head>
+<body>
+    <h1>Yoongi Chat</h1>
+    <div id="chatBox"></div>
+    <div class="input-container">
+        <textarea id="userMessage" rows="4" placeholder="Type your message here..."></textarea>
+        <div class="emoji-toolbar">
+            <!-- Emoji button smaller, round and styled as ASCII art -->
+            <button class="emoji-button" onclick="toggleEmojiPicker()">😊</button>
+        </div>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Emoji Picker Popup -->
+    <div id="emojiPicker" class="emoji-picker">
+        <!-- Emoji buttons in a grid -->
+        <button onclick="addEmoji('😀')">😀</button>
+        <button onclick="addEmoji('😂')">😂</button>
+        <button onclick="addEmoji('❤️')">❤️</button>
+        <button onclick="addEmoji('👍')">👍</button>
+        <button onclick="addEmoji('🎉')">🎉</button>
+        <button onclick="addEmoji('😊')">😊</button>
+        <button onclick="addEmoji('😎')">😎</button>
+        <button onclick="addEmoji('😢')">😢</button>
+        <button onclick="addEmoji('🥳')">🥳</button>
+        <button onclick="addEmoji('🤔')">🤔</button>
+        <button onclick="addEmoji('🥺')">🥺</button>
+        <button onclick="addEmoji('💀')">💀</button>
+        <button onclick="addEmoji('😋')">😋</button>
+        <button onclick="addEmoji('💩')">💩</button>
+        <button onclick="addEmoji('🤩')">🤩</button>
+    </div>
+	
+	<!-- Popup Alert -->
+    <div id="popupAlert" class="popup-alert">
+        <h2>Heads Up!</h2>
+        <p>Conversation memory is not yet integrated. Dude is hella dumb!</p>
+        <button onclick="closePopup()">Got it!</button>
+    </div>
+</body>
+</html>
